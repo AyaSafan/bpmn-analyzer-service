@@ -96,12 +96,12 @@ class TestAPIEndpoints:
         # Check stats structure
         stats = data["stats"]
         required_stats_fields = [
-            "total_processes", "total_tasks", "task_types",
+            "total_processes", "total_lanes", "total_tasks", "task_types",
             "total_gateways", "gateway_types", "total_events",
             "event_types", "total_flows", "flow_types",
-            "total_lanes", "total_subprocesses", "total_data_objects",
-            "total_data_stores", "has_error_handling", "has_timer_events",
-            "has_message_events", "has_compensation", "complexity_score"
+            "total_subprocesses", "total_data_objects",
+            "total_data_stores", "has_error_handling", 
+            "has_compensation", "complexity_score"
         ]
         
         for field in required_stats_fields:

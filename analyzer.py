@@ -5,7 +5,7 @@ Analyzes BPMN XML files and extracts statistics and suggestions.
 from typing import Dict, List, Any
 from lxml import etree
 from collections import defaultdict
-
+from collections import Counter
 
 class BPMNAnalyzer:
     """Analyzes BPMN 2.0 XML files."""
@@ -60,8 +60,6 @@ class BPMNAnalyzer:
             "total_data_objects": 0,
             "total_data_stores": 0,
             "has_error_handling": False,
-            "has_timer_events": False,
-            "has_message_events": False,
             "has_compensation": False,
             "complexity_score": 0
         }
@@ -69,16 +67,32 @@ class BPMNAnalyzer:
         # Count processes
         processes = self.root.xpath('//bpmn:process', namespaces=self.nsmap)
         stats["total_processes"] = len(processes)
-        
+
+        # Count lanes
+        lanes = self.root.xpath('//bpmn:laneSet/bpmn:lane', namespaces=self.nsmap)
+        stats["total_lanes"] = len(lanes)
+
         # Count tasks
-        tasks = self.root.xpath('//bpmn:task', namespaces=self.nsmap)
-        stats["total_tasks"] = len(tasks)
-        for task in tasks:
-            task_type = task.get('{http://www.omg.org/spec/BPMN/20100524/MODEL}taskType')
-            if task_type:
-                stats["task_types"][task_type] += 1
-            else:
-                stats["task_types"]["none"] += 1
+        stats["task_types"].clear()
+        stats["total_tasks"] = 0  
+        tag_task_map = {
+            "userTask": "//bpmn:userTask",
+            "serviceTask": "//bpmn:serviceTask",
+            "scriptTask": "//bpmn:scriptTask",
+            "manualTask": "//bpmn:manualTask",
+            "businessRuleTask": "//bpmn:businessRuleTask",
+            "sendTask": "//bpmn:sendTask",
+            "receiveTask": "//bpmn:receiveTask",
+            "callActivity": "//bpmn:callActivity",
+            "task": "//bpmn:task",  # generic
+        }
+        # Count all the above tasks
+        for task_type, xpath in tag_task_map.items():
+            matches = self.root.xpath(xpath, namespaces=self.nsmap)
+            count = len(matches)
+            if count > 0:
+                stats["task_types"][task_type] += count
+                stats["total_tasks"] += count
         
         # Count gateways
         exclusive_gateways = self.root.xpath('//bpmn:exclusiveGateway', namespaces=self.nsmap)
@@ -112,17 +126,12 @@ class BPMNAnalyzer:
         # Count flows
         sequence_flows = self.root.xpath('//bpmn:sequenceFlow', namespaces=self.nsmap)
         message_flows = self.root.xpath('//bpmn:messageFlow', namespaces=self.nsmap)
-        data_associations = self.root.xpath('//bpmn:dataInputAssociation | //bpmn:dataOutputAssociation', namespaces=self.nsmap)
         
-        stats["total_flows"] = len(sequence_flows) + len(message_flows) + len(data_associations)
+        stats["total_flows"] = len(sequence_flows) + len(message_flows)
         stats["flow_types"]["sequence"] = len(sequence_flows)
         stats["flow_types"]["message"] = len(message_flows)
-        stats["flow_types"]["dataAssociation"] = len(data_associations)
         
-        # Count lanes
-        lanes = self.root.xpath('//bpmn:laneSet/bpmn:lane', namespaces=self.nsmap)
-        stats["total_lanes"] = len(lanes)
-        
+              
         # Count subprocesses
         subprocesses = self.root.xpath('//bpmn:subProcess', namespaces=self.nsmap)
         stats["total_subprocesses"] = len(subprocesses)
@@ -137,11 +146,6 @@ class BPMNAnalyzer:
         error_events = self.root.xpath('//bpmn:errorEventDefinition', namespaces=self.nsmap)
         stats["has_error_handling"] = len(error_events) > 0
         
-        timer_events = self.root.xpath('//bpmn:timerEventDefinition', namespaces=self.nsmap)
-        stats["has_timer_events"] = len(timer_events) > 0
-        
-        message_events = self.root.xpath('//bpmn:messageEventDefinition', namespaces=self.nsmap)
-        stats["has_message_events"] = len(message_events) > 0
         
         compensation_events = self.root.xpath('//bpmn:compensateEventDefinition', namespaces=self.nsmap)
         stats["has_compensation"] = len(compensation_events) > 0
@@ -175,16 +179,11 @@ class BPMNAnalyzer:
         # Process count suggestions
         if stats["total_processes"] == 0:
             suggestions.append("No processes found in the BPMN file. Ensure the file contains valid BPMN process definitions.")
-        elif stats["total_processes"] > 1:
-            suggestions.append(f"Multiple processes ({stats['total_processes']}) detected. Consider splitting into separate files for better maintainability.")
-        
-        # Error handling suggestions
-        if not stats["has_error_handling"] and stats["total_tasks"] > 0:
-            suggestions.append("Consider adding error handling with error boundary events or error end events to improve process robustness.")
         
         # Gateway balance suggestions
         if stats["total_gateways"] == 0 and stats["total_tasks"] > 3:
             suggestions.append("Consider using gateways to model decision points and parallel execution for better process clarity.")
+        
         elif stats["gateway_types"].get("complex", 0) > 0:
             suggestions.append("Complex gateways detected. Consider simplifying by using exclusive or inclusive gateways where possible.")
         
@@ -202,12 +201,9 @@ class BPMNAnalyzer:
         elif stats["complexity_score"] < 10:
             suggestions.append("Very simple process. Ensure all necessary business logic is captured.")
         
-        # Timer and message events
-        if not stats["has_timer_events"] and stats["total_events"] > 0:
-            suggestions.append("Consider using timer events for time-based processes (e.g., deadlines, delays).")
-        
-        if not stats["has_message_events"] and stats["total_processes"] > 1:
-            suggestions.append("For multi-process scenarios, consider using message events for inter-process communication.")
+              
+        if not stats["flow_types"]["message"] == 0 and stats["total_processes"] > 1:
+            suggestions.append("For multi-process scenarios, consider using message flows for inter-process communication.")
         
         # Data handling
         if stats["total_data_objects"] == 0 and stats["total_data_stores"] == 0 and stats["total_tasks"] > 0:

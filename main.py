@@ -91,6 +91,7 @@ app.add_middleware(
 class StatsResponse(BaseModel):
     """Response model for statistics."""
     total_processes: int
+    total_lanes: int
     total_tasks: int
     task_types: Dict[str, int]
     total_gateways: int
@@ -99,13 +100,10 @@ class StatsResponse(BaseModel):
     event_types: Dict[str, int]
     total_flows: int
     flow_types: Dict[str, int]
-    total_lanes: int
     total_subprocesses: int
     total_data_objects: int
     total_data_stores: int
     has_error_handling: bool
-    has_timer_events: bool
-    has_message_events: bool
     has_compensation: bool
     complexity_score: int
 
@@ -149,7 +147,7 @@ async def health():
                         "stats": {
                             "total_processes": 1,
                             "total_tasks": 1,
-                            "task_types": {"none": 1},
+                            "task_types": {"default": 1},
                             "total_gateways": 0,
                             "gateway_types": {},
                             "total_events": 2,
@@ -161,8 +159,6 @@ async def health():
                             "total_data_objects": 0,
                             "total_data_stores": 0,
                             "has_error_handling": False,
-                            "has_timer_events": False,
-                            "has_message_events": False,
                             "has_compensation": False,
                             "complexity_score": 4
                         },
