@@ -39,5 +39,8 @@ async def analyse_bpmn(request: Request) -> AnalysisResponse:
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        # Re-raise explicit HTTP errors (e.g., empty XML -> 400)
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

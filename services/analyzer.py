@@ -29,6 +29,10 @@ class BPMNAnalyzer:
             self.root = etree.fromstring(self.bpmn_xml.encode('utf-8'))
         except etree.XMLSyntaxError as e:
             raise ValueError(f"Invalid XML: {e}")
+        # Basic validation: ensure this looks like a BPMN 2.0 document
+        is_bpmn = bool(self.root.xpath('//bpmn:definitions | //bpmn:process', namespaces=self.nsmap))
+        if not is_bpmn:
+            raise ValueError("Not a valid BPMN 2.0 XML document: missing <definitions> or <process> in BPMN namespace")
     
     def analyze(self) -> Dict[str, Any]:
         """Perform comprehensive analysis of the BPMN file."""

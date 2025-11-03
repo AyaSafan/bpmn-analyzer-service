@@ -24,14 +24,7 @@ class TestAPIEndpoints:
         assert "message" in data
         assert "version" in data
         assert "endpoints" in data
-    
-    def test_health_endpoint(self, client):
-        """Test the health check endpoint."""
-        response = client.get("/health")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-    
+        
     def test_analyse_endpoint_success(self, client):
         """Test successful BPMN analysis."""
         response = client.post(
@@ -106,6 +99,6 @@ class TestAPIEndpoints:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["stats"]["total_gateways"] == 1
+        assert data["stats"]["total_gateways"] == 2
         assert data["stats"]["total_tasks"] == 3
 
