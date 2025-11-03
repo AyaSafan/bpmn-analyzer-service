@@ -4,7 +4,7 @@ Tests for the FastAPI endpoints.
 import pytest
 from fastapi.testclient import TestClient
 from main import app
-from samples import SAMPLE_BPMN, SAMPLE_BPMN_COMPLEX
+from tests.samples import SAMPLE_BPMN_SIMPLE, SAMPLE_BPMN_COMPLEX
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ class TestAPIEndpoints:
         """Test successful BPMN analysis."""
         response = client.post(
             "/analyse",
-            content=SAMPLE_BPMN,
+            content=SAMPLE_BPMN_SIMPLE,
             headers={"Content-Type": "application/xml"}
         )
         assert response.status_code == 200
@@ -72,7 +72,7 @@ class TestAPIEndpoints:
         """Test that the response has the correct structure."""
         response = client.post(
             "/analyse",
-            content=SAMPLE_BPMN,
+            content=SAMPLE_BPMN_SIMPLE,
             headers={"Content-Type": "application/xml"}
         )
         assert response.status_code == 200

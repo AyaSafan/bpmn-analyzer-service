@@ -3,8 +3,8 @@ Tests for the BPMN Analyzer module.
 """
 import pytest
 from lxml import etree
-from analyzer import BPMNAnalyzer
-from samples import SAMPLE_BPMN_SIMPLE, SAMPLE_BPMN_COMPLEX, SAMPLE_BPMN_WITH_LANES, INVALID_XML
+from services.analyzer import BPMNAnalyzer
+from tests.samples import SAMPLE_BPMN_SIMPLE, SAMPLE_BPMN_COMPLEX, SAMPLE_BPMN_WITH_LANES, INVALID_XML
 
 
 
