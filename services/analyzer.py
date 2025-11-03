@@ -5,7 +5,6 @@ Analyzes BPMN XML files and extracts statistics and suggestions.
 from typing import Dict, List, Any
 from lxml import etree
 from collections import defaultdict
-from collections import Counter
 
 class BPMNAnalyzer:
     """Analyzes BPMN 2.0 XML files."""

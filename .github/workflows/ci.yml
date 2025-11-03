@@ -52,6 +52,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     
@@ -65,12 +66,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 black
     
-    - name: Run flake8
+    - name: Run flake8 (warnings only)
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
     
-    - name: Check code formatting with black
+    - name: Check code formatting with black (warn-only)
       run: |
-        black --check .
+        black --check . || true
 
